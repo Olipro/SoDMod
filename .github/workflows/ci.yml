@@ -1,0 +1,79 @@
+name: CI Master Script
+
+on:
+  workflow_call:
+    inputs:
+      isRelease:
+        required: true
+        type: boolean
+      isPR:
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      GITHUBTOKEN:
+        required: true
+
+jobs:
+  Primary-Pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          ref: ${{github.ref}}
+          fetch-depth: '0'
+          submodules: 'recursive'
+      - name: Get Short SHA
+        id: vars
+        run: echo "shortsha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: Install DotNet
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.x'
+      - name: Build Snapshot
+        if: ${{!inputs.isRelease && github.ref_name == github.event.repository.default_branch}}
+        run: dotnet build /p:VersionSuffix=snapshot-${{steps.vars.outputs.shortsha}} --configuration Release
+      - name: Build Release
+        if: ${{inputs.isRelease && !inputs.isPR}}
+        run: dotnet build /p:VersionPrefix=${{github.ref_name}} /p:VersionSuffix="" --configuration Release
+      - name: Publish Snapshot
+        if: ${{!inputs.isRelease && github.ref_name == github.event.repository.default_branch}}
+        uses: actions/create-release@v1
+        id: publish_snapshot
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUBTOKEN}}
+        with:
+          tag_name: snapshot-${{steps.vars.outputs.shortsha}}
+          release_name: SoDMod Pre-Release ${{steps.vars.outputs.shortsha}}
+          prerelease: true
+      - name: Publish Release
+        if: ${{inputs.isRelease && !inputs.isPR}}
+        uses: actions/create-release@v1
+        id: publish_release
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUBTOKEN}}
+        with:
+         tag_name: ${{github.ref_name}}
+         release_name: SoDMod v${{github.ref_name}}
+         draft: true
+      - name: Upload Snapshot Artifact
+        if: ${{!inputs.isRelease && github.ref_name == github.event.repository.default_branch}}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUBTOKEN}}
+        with:
+          upload_url: ${{steps.publish_snapshot.outputs.upload_url}}
+          asset_path: ./bin/Release/netstandard2.1/SoDMod.dll
+          asset_name: SoDMod.dll
+          asset_content_type: application/octet-stream
+      - name: Upload Release Artifact
+        if: ${{inputs.isRelease && !inputs.isPR}}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUBTOKEN}}
+        with:
+          upload_url: ${{steps.publish_release.outputs.upload_url}}
+          asset_path: ./bin/Release/netstandard2.1/SoDMod.dll
+          asset_name: SoDMod.dll
+          asset_content_type: application/octet-stream
