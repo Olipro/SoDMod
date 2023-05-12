@@ -17,13 +17,13 @@
 
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Shadows of Doubt\BepInEx\unhollowed\Assembly-CSharp.dll</HintPath>
+      <HintPath>deps/Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="Il2Cppmscorlib">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Shadows of Doubt\BepInEx\unhollowed\Il2Cppmscorlib.dll</HintPath>
+      <HintPath>deps/Il2Cppmscorlib.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Shadows of Doubt\BepInEx\unhollowed\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>deps/UnityEngine.CoreModule.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>
