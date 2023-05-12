@@ -1,0 +1,15 @@
+name: Release Pipeline
+
+on:
+  push:
+    tags: ['*.*.*']
+
+jobs:
+  Snapshot:
+    name: Execute Snapshot Workflow
+    if: ${{ !contains(github.event.head_commit.message, '[CI Skip]') && github.event_name != 'pull_request' }}
+    uses: Olipro/SoDMod/.github/workflows/ci.yml@github
+    with:
+      isRelease: true
+    secrets:
+      GITHUBTOKEN: ${{secrets.GITHUB_TOKEN}}
